@@ -1,0 +1,19 @@
+{
+  "name": "merkle-root",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "index.ts",
+  "license": "MIT",
+  "scripts": {
+    "start": "npx tsx src/index.ts"
+  },
+  "dependencies": {
+    "starknet": "^5.24.3",
+    "starknet-merkle-tree": "^1.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.5",
+    "tsx": "^4.7.0",
+    "typescript": "^5.3.3"
+  }
+}
