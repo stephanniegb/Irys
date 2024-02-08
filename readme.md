@@ -4,8 +4,6 @@ An implementation of ERC721 AIRDROP CONTRACT SCRIPT:
 
 [REFERENCE NFT CONTRACT IMPLEMENTATION](https://github.com/codeWhizperer/ERC721-AIRDROP)
 
-//paste classh hash 
-
 
 <!-- setup -->
 
