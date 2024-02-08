@@ -1,79 +1,64 @@
-import * as Merkle from "starknet-merkle-tree";
-import fs from "fs"
-import { RpcProvider, Contract, Account, CallData, Uint256 } from "starknet";
 
+import { RpcProvider, Contract, Account, CallData, Calldata, } from "starknet";
+import tokenABi from "../src/token.abi.json"
 
+// NFT contract class_hash on sepolia
+const CLASS_HASH = "0x3116f7903633e9cae07982d46335d42c431b807c62b2a6c5f75c646a5a5202f";
+const provider = new RpcProvider({ nodeUrl: "" });
+const account1Address = "";
+const account3 = new Account(provider, account1Address, process.env.PRIVATE_KEY!);
 
+// ipfs CID Of nft collection
+const longString = "ipfs://QmSkDCsS32eLpcymxtn1cEn7Rc5hfefLBgfvZyjaYXr4gQ/"
 
-
-// // address + quantity (u256.low + u256.high)
-const airdrop: Merkle.InputForMerkle[] = [
-    ['0x0143255712596fe3b1ebb6a4309230d2592034e6fe544e33acf2848fe7cf5fa7', '250', '0'],
-    ['0x69b49c2cc8b16e80e86bfc5b0614a59aa8c9b601569c7b80dde04d3f3151b79', '256', '0'],
-    ['0x3cad9a072d3cf29729ab2fad2e08972b8cfde01d4979083fb6d15e8e66f8ab1', '25', '0'],
-];
-
-
-
-// merkle contract class_hash on sepolia
-const MERKLE_CLASS_HASH_POSEIDON = "0x03e2efc98f902c0b33eee6c3daa97b941912bcab61b6162884380c682e594eaf";
-
-const tree = Merkle.StarknetMerkleTree.load(
-    JSON.parse(fs.readFileSync('src/data/treeTestPoseidon.json', 'ascii'))
-);
-
-const leaf = tree.getInputData(0);
-const proof = tree.getProof(0);
-
-console.log('leaf:', leaf)
-console.log('proof:', proof)
-
-// provider and account setup
-const provider = new RpcProvider({ nodeUrl: process.env.RPC_URL });
-const account3Address = "0x0661aB0dE03527dEB438FC6E315e9898D4CcD09A5334821CEebe6AcBe17b2407";
-const account3 = new Account(provider, account3Address, process.env.PRIVATE_KEY as string);
-
-// deploy merkle contract from class hash
-// deployed merkle contract address: 0x3a8c8a730b04e91829d15ecb3dfd7da7e0ad977721427a6e8a86a5132cfdb96
-const myConstructorMerkleVerify = CallData.compile([tree.root]);
-
-// deploy merkle_contract from merkle class_hash on sepolia
-const deployResponses = async () => {
+const NFTADDRESS = "0x3b9224afee9a94fcfb3b479ca71ab4cfaf5edcac8f96160047794e2511caa92"
+const deployNFT = async () => {
+    //set owner at deployment of contract
+    let owner = ""
+    const contractCallData: CallData = new CallData(tokenABi);
+    const myCalldata: Calldata = contractCallData.compile("constructor", [owner]);
     const deployAddr = await account3.deployContract({
-        classHash: MERKLE_CLASS_HASH_POSEIDON,
-        constructorCalldata: myConstructorMerkleVerify
+        classHash: CLASS_HASH,
+        constructorCalldata: myCalldata
     })
     return deployAddr.address
 }
 
 
-const deployMerkle = async () => {
-    let address = await deployResponses();
-    console.log('merkleVerifyAddress:', address);
-}
-
-deployMerkle()
-
-
-// invoke request_airdrop on contract: 0x06262879a96a42c2f15930e764d4081e8beabab754a2fce755b987b97afc2dca
-const invoke_request_airdrop = async () => {
-    const AIRDROP_ADDRESS = "0x06262879a96a42c2f15930e764d4081e8beabab754a2fce755b987b97afc2dca"
-    let abi = await (await provider.getClassAt(AIRDROP_ADDRESS)).abi
-
-    if (abi === undefined) { throw new Error("no abi.") };
-    const myContract = new Contract(abi, AIRDROP_ADDRESS, account3);
-    const amount: Uint256 = { low: leaf[1], high: leaf[2] };
-    const myCall = myContract.populate("request_airdrop", {
-        address: "0x0143255712596fe3b1ebb6a4309230d2592034e6fe544e33acf2848fe7cf5fa7", //address to claim
-        amount,
-        proof
-    })
-    const txResp = await account3.execute(myCall);
-    const txR = await provider.waitForTransaction(txResp.transaction_hash);
-    console.log("event =", txR.events);
+const deploy = async () => {
+    let address = await deployNFT();
+    console.log('nft-address:', address);
 }
 
 
 
-invoke_request_airdrop()
+// set contract uri
+const setTokenUri = async () => {
+    const accountAddress2 = ""
+    const private_key2 = ""
+    const account2 = new Account(provider, accountAddress2, process.env.PRIVATE_KEY2!
+    );
+    let newContract = await new Contract(tokenABi, NFTADDRESS, account2)
+    const result = await newContract.set_token_uri(longString)
+    newContract.connect(account2)
+    console.log('result:', await result)
+}
+
+const airdrop = [
+    '0x0143255712596fe3b1ebb6a4309230d2592034e6fe544e33acf2848fe7cf5fa7', '0x0227fd0cba3497f781821922c0dbdd9a622db621286dad907d135b39697f7382', '0x03e8cbb63a7d14b1a0514bc63fd891a7ad61d67c73a55aadf67a405a8a9c0000']
+const airdrop_tokens = async () => {
+    // owner of nft contract
+    const accountAddress2 = ""
+    const private_key2 = ""
+    const account2 = new Account(provider, accountAddress2, private_key2);
+    let newContract = await new Contract(tokenABi, NFTADDRESS, account2)
+    const result = await newContract.airdrop_token(airdrop)
+    newContract.connect(account2)
+    console.log('result:', await result)
+}
+
+// deploy()
+// setTokenUri()
+// airdrop_tokens()
+
 
