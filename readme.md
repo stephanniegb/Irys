@@ -1,14 +1,16 @@
-# NFT AIRDROP CONTRACT
+# NFT AIRDROP SCRIPT
 
 An implementation of ERC721 AIRDROP CONTRACT SCRIPT:
 
+[REFERENCE NFT CONTRACT IMPLEMENTATION](https://github.com/codeWhizperer/ERC721-AIRDROP)
 
 //paste classh hash 
-const CLASS_HASH = "";
+
 
 <!-- setup -->
 
 ```bash
+const CLASS_HASH = "";
 const provider = new RpcProvider({ nodeUrl: "" });
 const account1Address = "";
 const account3 = new Account(provider, account1Address, process.env.PRIVATE_KEY!);
