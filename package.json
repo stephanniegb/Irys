@@ -1,5 +1,5 @@
 {
-  "name": "merkle-root",
+  "name": "irys",
   "version": "1.0.0",
   "type": "module",
   "main": "index.ts",
@@ -8,6 +8,8 @@
     "start": "npx tsx src/index.ts"
   },
   "dependencies": {
+    "@irys/query": "^0.0.8",
+    "@irys/sdk": "^0.2.9",
     "starknet": "^5.24.3",
     "starknet-merkle-tree": "^1.0.1"
   },
