@@ -21,9 +21,9 @@ import {
 } from "starknet";
 
 const PRIVATE_KEY =
-  "0x005d5c250b5c181684ae6d8ebfa0faeac3ad0c6f31a6c2f102a2fffddba00a05";
+  "";
 const account0 =
-  "0x02F659cf8CCE41168B8c0A8BedCE468E33BE1B7bd26E920266C025Dc0F8FBD1b";
+  "";
 const getIrys = async () => {
   const providerUrl =
     "https://eth-mainnet.g.alchemy.com/v2/UzdAPr86JL10t8A8Dj-UKJTob1LY1woY";
