@@ -12,32 +12,18 @@ import {
   Signature,
   stark,
   ArraySignatureType,
+  ValidateType,
+  TypedDataRevision,
+  ec,
+  encode,
+  WeierstrassSignatureType,
+  typedData,
 } from "starknet";
 
-// interface Transaction {
-// 	transaction_hash: string;
-// 	type: string;
-// 	version: string;
-// 	sender_address?: string; // Optional property
-//   }
-
-//   type ExtendedResponse = GetTransactionReceiptResponse & {
-// 	myNewProperty?: string;
-//   };
-
-// const getTx = async(tx:BigNumberish) => {
-// 	const provider = new RpcProvider({ nodeUrl: "https://starknet-mainnet.blastapi.io/743189cd-c0ce-463f-94c0-cfb2cc572e92/rpc/v0_7" });
-// 	const transaction:Transaction = await provider.getTransaction(tx)
-// 	// const response2 = await provider.getTransactionByHash(tx)
-// 	const receipt:ExtendedResponse = await provider.getTransactionReceipt(tx)
-// 	console.log('get-transaction:', transaction);
-
-// 	// console.log('get-transaction-by-hash', response2)
-// 	console.log('receipt:', receipt.value );
-// }
-
-const PRIVATE_KEY = "";
-const account0= "";
+const PRIVATE_KEY =
+  "0x005d5c250b5c181684ae6d8ebfa0faeac3ad0c6f31a6c2f102a2fffddba00a05";
+const account0 =
+  "0x02F659cf8CCE41168B8c0A8BedCE468E33BE1B7bd26E920266C025Dc0F8FBD1b";
 const getIrys = async () => {
   const providerUrl =
     "https://eth-mainnet.g.alchemy.com/v2/UzdAPr86JL10t8A8Dj-UKJTob1LY1woY";
@@ -137,135 +123,169 @@ const fetchData = async (id: string) => {
   console.log("response:", await data.json());
 };
 
-import {
-  ec,
-  hash,
-  num,
-  json,
-  Contract,
-  WeierstrassSignatureType,
-  encode,
-  typedData,
-} from "starknet";
-// const Sig = async() =>{
-// const privateKey = '0x005d5c250b5c181684ae6d8ebfa0faeac3ad0c6f31a6c2f102a2fffddba00a05';
-// const starknetPublicKey = await ec.starkCurve.getStarkKey(privateKey);
-// const fullPublicKey = await encode.addHexPrefix(
-//   encode.buf2hex(ec.starkCurve.getPublicKey(privateKey, false))
-// );
+interface Itype {
+  chainId: string;
+  message: bigint[];
+}
 
-// const message: BigNumberish[] = [1, 128, 18, 14];
-
-// const msgHash = await hash.computeHashOnElements(message);
-// const signature: WeierstrassSignatureType = await ec.starkCurve.sign(msgHash, privateKey);
-// console.log('signature:', signature)
-// console.log('public-length', {length:starknetPublicKey.length, pubKey: starknetPublicKey, fullPkey: fullPublicKey.length})
-// }
-// uploadData()
-// fetchQuery()
-// fetchData('WkyU0uJMlfjBSLRpI0PGvXYkb7xDbAJfvFv4xNVjk-U')
-// getTx("0x028e7842714c294a4c14de17eb61e7432db0294e19b312f379eda5dd19a6f48c");
-
-// Sig()
-
-const messageStructure: TypedData = {
-  types: {
-    StarkNetDomain: [
-      { name: "name", type: "felt" },
-      { name: "chainId", type: "felt" },
-      { name: "version", type: "felt" },
-    ],
-    Message: [{ name: "message", type: "felt" }],
-  },
-  primaryType: "Message",
-  domain: {
-    name: "MyDapp",
-    chainId: "SN_MAIN",
-    version: "0.0.1",
-  },
-  message: {
-    message: "hello world!",
-  },
+export const get_domain = ({
+  chainId,
+  message,
+}: Itype): { typemessage: TypedData } => {
+  const typemessage: TypedData = {
+    domain: {
+      name: "Arbundle",
+      chainId: chainId,
+      version: "1.0.2",
+      revision: TypedDataRevision.ACTIVE,
+    },
+    message: {
+      message,
+    },
+    primaryType: "Message",
+    types: {
+      Message: [{ name: "message", type: "felt*" }],
+      StarknetDomain: [
+        { name: "name", type: "string" },
+        { name: "chainId", type: "felt" },
+        { name: "version", type: "string" },
+      ],
+    },
+  };
+  return {
+    typemessage,
+  };
 };
+
+
 let provider = new RpcProvider({
   nodeUrl:
-    "https://starknet-mainnet.blastapi.io/743189cd-c0ce-463f-94c0-cfb2cc572e92/rpc/v0_7",
+    "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/FPlKU5L3HXaOnKp2V-uhZ0Db51b5QcKz",
 });
-let account = new Account(
-  provider,
-  account0,
-  PRIVATE_KEY
-);
+let account = new Account(provider, account0, PRIVATE_KEY);
 
-// signMessage
-const Sig = async () => {
+// const Sign = async (message:Uint8Array, _opts?:any):Promise<Uint8Array> => {
+//   let chainId = await account.getChainId();
+//   let message_to_felt =  convertToFelt252(message)
+
+//   let typedmessage = await get_domain({
+//     chainId,
+//     message: message_to_felt,
+//   });
+//   let signature: Signature = (await account.signMessage(
+//     typedmessage.typemessage
+//   )) as WeierstrassSignatureType;
+//   const r = BigInt(signature.r).toString(16).padStart(64, "0"); // Convert BigInt to hex string
+//   const s = BigInt(signature.s).toString(16).padStart(64, "0"); // Convert BigInt to hex string
+//   //    @ts-ignore
+//   const recovery = signature.recovery.toString(16).padStart(2, "0"); // Convert recovery to hex string
+
+//   const rArray = Uint8Array.from(Buffer.from(r, "hex"));
+//   const sArray = Uint8Array.from(Buffer.from(s, "hex"));
+//   const recoveryArray = Uint8Array.from(Buffer.from(recovery, "hex"));
+
+//   // Concatenate the arrays
+//   const result = new Uint8Array(
+//     rArray.length + sArray.length + recoveryArray.length
+//   );
+//   result.set(rArray);
+//   result.set(sArray, rArray.length);
+//   result.set(recoveryArray, rArray.length + sArray.length);
+//   console.log('result1:==',result)
+//   return result;
+// };
+const SignareWithAppendedChainID = async (message: Uint8Array, _opts?: any): Promise<Uint8Array> => {
+  let chainId = await account.getChainId();
+  let message_to_felt = convertToFelt252(message);
+
+  let typedmessage = await get_domain({
+    chainId,
+    message: message_to_felt,
+  });
+
   let signature: Signature = (await account.signMessage(
-    messageStructure
+    typedmessage.typemessage
   )) as WeierstrassSignatureType;
+
   const r = BigInt(signature.r).toString(16).padStart(64, "0"); // Convert BigInt to hex string
   const s = BigInt(signature.s).toString(16).padStart(64, "0"); // Convert BigInt to hex string
-  //    @ts-ignore
+  // @ts-ignore
   const recovery = signature.recovery.toString(16).padStart(2, "0"); // Convert recovery to hex string
+  const c = BigInt(chainId).toString(16).padStart(8, "0");
 
   const rArray = Uint8Array.from(Buffer.from(r, "hex"));
   const sArray = Uint8Array.from(Buffer.from(s, "hex"));
   const recoveryArray = Uint8Array.from(Buffer.from(recovery, "hex"));
+  // Assuming chainId is in hexadecimal format, and converting it to Uint8Array
+  const chainIdArray = Uint8Array.from(Buffer.from(c, "hex"));
 
-  // Concatenate the arrays
+  // Concatenate the arrays including the chainIdArray
   const result = new Uint8Array(
-    rArray.length + sArray.length + recoveryArray.length
+    rArray.length + sArray.length + recoveryArray.length + chainIdArray.length
   );
   result.set(rArray);
   result.set(sArray, rArray.length);
   result.set(recoveryArray, rArray.length + sArray.length);
-
+  result.set(
+    chainIdArray,
+    rArray.length + sArray.length + recoveryArray.length
+  );
   return result;
 };
 
-interface Itype {
-  chainId: string | number;
-  message: Uint8Array;
-}
-let signature = Sig();
+let message = Buffer.from("Hello-world!");
+let signature = SignareWithAppendedChainID(message);
+
+const logSignature = async () => {
+  console.log("signature:", await signature);
+};
+logSignature();
+
+
 //verify
-const verify = async (): Promise<boolean> => {
+const verify = async (message: Uint8Array): Promise<boolean> => {
+  let uint8ChainId = (await signature).slice(-10);
+  const hexString =
+    "0x" +
+    Array.from(uint8ChainId)
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  let message_to_string = convertToFelt252(message);
+
+  let typemessage = await get_domain({
+    chainId: hexString,
+    message: message_to_string,
+  });
   const fullPubKey = encode.addHexPrefix(
     encode.buf2hex(ec.starkCurve.getPublicKey(PRIVATE_KEY, false))
   );
-  const msgHash = typedData.getMessageHash(messageStructure, account.address);
-  return ec.starkCurve.verify(
-    (await signature).slice(0, -1),
+  const msgHash = typedData.getMessageHash(
+    typemessage.typemessage,
+    account.address
+  );
+  let status = await ec.starkCurve.verify(
+    (await signature).slice(0, 64),
     msgHash,
     fullPubKey
   );
+  console.log("status==:", status);
+  return status;
 };
-verify();
+let verify_message = Buffer.from("Hello-world!");
 
+verify(verify_message);
 
+function convertToFelt252(data: Uint8Array): bigint[] {
+  const felt252Array: bigint[] = [];
+  const felt252Size = 31; // 252 bits / 8 bits per byte = 31.5 bytes (use 31 bytes for felt252)
 
+  for (let i = 0; i < data.length; i += felt252Size) {
+    let value = BigInt(0);
+    for (let j = 0; j < felt252Size && i + j < data.length; j++) {
+      value = (value << BigInt(8)) | BigInt(data[i + j]);
+    }
+    felt252Array.push(value);
+  }
 
-
-// convert Uint8Array to  WeierstrassSignatureType
-// function parseSignature(data: Uint8Array): WeierstrassSignatureType {
-// 	// Define the length of each component in bytes
-// 	const rLength = 32; // Length of r in bytes
-// 	const sLength = 32; // Length of s in bytes
-// 	const recoveryLength = 1; // Length of recovery in bytes
-  
-// 	// Extract each component
-// 	const rArray = data.slice(0, rLength);
-// 	const sArray = data.slice(rLength, rLength + sLength);
-// 	const recoveryArray = data.slice(rLength + sLength);
-  
-// 	// Convert Uint8Array back to hex strings
-// 	const rHex = Buffer.from(rArray).toString("hex");
-// 	const sHex = Buffer.from(sArray).toString("hex");
-// 	const recoveryHex = Buffer.from(recoveryArray).toString("hex");
-  
-// 	// Convert hex strings to BigInt and number
-// 	const r = BigInt("0x" + rHex);
-// 	const s = BigInt("0x" + sHex);
-// 	const recovery = parseInt(recoveryHex, 16);
-  
-// 	return { r, s, recovery } as WeierstrassSignatureType;
-//   }
+  return felt252Array;
+}
