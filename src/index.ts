@@ -20,10 +20,16 @@ import {
   typedData,
 } from "starknet";
 
+// const PRIVATE_KEY =
+//   "";
+// const account0 =
+//   "";
+const SN_SEPOLIA = "0x534e5f5345504f4c4941";
+
 const PRIVATE_KEY =
-  "";
+  "0x0570d0ab0e4bd9735277e8db6c8e19918c64ed50423aa5860235635d2487c7bb";
 const account0 =
-  "";
+  "0x078e47BBEB4Dc687741825d7bEAD044e229960D3362C0C21F45Bb920db08B0c4";
 const getIrys = async () => {
   const providerUrl =
     "https://eth-mainnet.g.alchemy.com/v2/UzdAPr86JL10t8A8Dj-UKJTob1LY1woY";
@@ -157,44 +163,50 @@ export const get_domain = ({
   };
 };
 
-
 let provider = new RpcProvider({
   nodeUrl:
     "https://starknet-sepolia.g.alchemy.com/starknet/version/rpc/v0_7/FPlKU5L3HXaOnKp2V-uhZ0Db51b5QcKz",
+    // "https://starknet-mainnet.g.alchemy.com/starknet/version/rpc/v0_7/LSOcLfeCY8c4ovUNnDNX4YJhkMpsVD5F"
 });
 let account = new Account(provider, account0, PRIVATE_KEY);
 
-// const Sign = async (message:Uint8Array, _opts?:any):Promise<Uint8Array> => {
-//   let chainId = await account.getChainId();
-//   let message_to_felt =  convertToFelt252(message)
+// Signing message without appending chainId
+const _Sign = async (message: Uint8Array, _opts?: any): Promise<Uint8Array> => {
+  let chainId = await account.getChainId();
+  let message_to_felt = convertToFelt252(message);
 
-//   let typedmessage = await get_domain({
-//     chainId,
-//     message: message_to_felt,
-//   });
-//   let signature: Signature = (await account.signMessage(
-//     typedmessage.typemessage
-//   )) as WeierstrassSignatureType;
-//   const r = BigInt(signature.r).toString(16).padStart(64, "0"); // Convert BigInt to hex string
-//   const s = BigInt(signature.s).toString(16).padStart(64, "0"); // Convert BigInt to hex string
-//   //    @ts-ignore
-//   const recovery = signature.recovery.toString(16).padStart(2, "0"); // Convert recovery to hex string
+  let typedmessage = await get_domain({
+    chainId,
+    message: message_to_felt,
+  });
+  let signature: Signature = (await account.signMessage(
+    typedmessage.typemessage
+  )) as WeierstrassSignatureType;
+  const r = BigInt(signature.r).toString(16).padStart(64, "0"); // Convert BigInt to hex string
+  const s = BigInt(signature.s).toString(16).padStart(64, "0"); // Convert BigInt to hex string
+  //    @ts-ignore
+  const recovery = signature.recovery.toString(16).padStart(2, "0"); // Convert recovery to hex string
 
-//   const rArray = Uint8Array.from(Buffer.from(r, "hex"));
-//   const sArray = Uint8Array.from(Buffer.from(s, "hex"));
-//   const recoveryArray = Uint8Array.from(Buffer.from(recovery, "hex"));
+  const rArray = Uint8Array.from(Buffer.from(r, "hex"));
+  const sArray = Uint8Array.from(Buffer.from(s, "hex"));
+  const recoveryArray = Uint8Array.from(Buffer.from(recovery, "hex"));
 
-//   // Concatenate the arrays
-//   const result = new Uint8Array(
-//     rArray.length + sArray.length + recoveryArray.length
-//   );
-//   result.set(rArray);
-//   result.set(sArray, rArray.length);
-//   result.set(recoveryArray, rArray.length + sArray.length);
-//   console.log('result1:==',result)
-//   return result;
-// };
-const SignareWithAppendedChainID = async (message: Uint8Array, _opts?: any): Promise<Uint8Array> => {
+  // Concatenate the arrays
+  const result = new Uint8Array(
+    rArray.length + sArray.length + recoveryArray.length
+  );
+  result.set(rArray);
+  result.set(sArray, rArray.length);
+  result.set(recoveryArray, rArray.length + sArray.length);
+  console.log("result1:==", result);
+  return result;
+};
+
+// Signing message with ChainId appended
+const SignareWithAppendedChainID = async (
+  message: Uint8Array,
+  _opts?: any
+): Promise<Uint8Array> => {
   let chainId = await account.getChainId();
   let message_to_felt = convertToFelt252(message);
 
@@ -241,9 +253,8 @@ const logSignature = async () => {
 };
 logSignature();
 
-
-//verify
-const verify = async (message: Uint8Array): Promise<boolean> => {
+//verify implementation without appended ChainId
+const _verify = async (message: Uint8Array): Promise<boolean> => {
   let uint8ChainId = (await signature).slice(-10);
   const hexString =
     "0x" +
@@ -262,6 +273,46 @@ const verify = async (message: Uint8Array): Promise<boolean> => {
   const msgHash = typedData.getMessageHash(
     typemessage.typemessage,
     account.address
+  );
+  let status = await ec.starkCurve.verify(
+    (await signature).slice(0, 64),
+    msgHash,
+    fullPubKey
+  );
+  console.log("status==:", status);
+  return status;
+};
+
+// Verifying implementation with appended chainId
+const verify = async (message: Uint8Array): Promise<boolean> => {
+  const sepolia = BigInt(SN_SEPOLIA).toString(16).padStart(8, "0");
+  const sepolia_array = Uint8Array.from(Buffer.from(sepolia, "hex"));
+  // Check if the last 10 bytes of the signature match sepoliaArray
+  const isSepolia = await (await signature)
+    .slice(-10)
+    .every((v, i) => v === sepolia_array[i]);
+
+  // If it's sepolia, return the last 10 bytes, else return the last 7 bytes
+  const uint8ChainId = isSepolia
+    ? (await signature).slice(-10)
+    : (await signature).slice(-7);
+  const hexString =
+    "0x" +
+    Array.from(uint8ChainId)
+      .map((byte) => byte.toString(16).padStart(2, "0"))
+      .join("");
+  let message_to_string = convertToFelt252(message);
+
+  let typemessage = await get_domain({
+    chainId: hexString,
+    message: message_to_string,
+  });
+  const msgHash = typedData.getMessageHash(
+    typemessage.typemessage,
+    account.address
+  );
+  const fullPubKey = encode.addHexPrefix(
+    encode.buf2hex(ec.starkCurve.getPublicKey(PRIVATE_KEY, true))
   );
   let status = await ec.starkCurve.verify(
     (await signature).slice(0, 64),
