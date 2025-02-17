@@ -10,7 +10,10 @@
   "dependencies": {
     "@irys/query": "^0.0.8",
     "@irys/sdk": "^0.2.9",
-    "starknet": "^6.11.0",
+    "@irys/upload-core": "^0.0.10",
+    "@irys/upload-starknet-node": "^0.0.1",
+    "bignumber.js": "^9.1.2",
+    "starknet": "^6.21.1",
     "starknet-merkle-tree": "^1.0.1"
   },
   "devDependencies": {
