@@ -4,7 +4,8 @@ import { Starknet } from "@irys/upload-starknet"; // Starknet integration with I
 import "dotenv/config"; // Loads environment variables from a .env file
 
 // User's Starknet address (public key)
-const userAddress = "ENTER STARKNET WALLET ADDRESS";
+const userAddress =
+  "0x06017E61464EC0FE7e49ABB11033cE73207eFAB5E3a9E55A52cDA8C5038e5542";
 
 // Private key loaded from environment variables (NEVER hardcode private keys in code)
 const privateKey = process.env.PRIVATE_KEY;
@@ -42,26 +43,29 @@ const uploadData = async () => {
     const receipt = await irysUploader.upload(dataToUpload);
     console.log(`Data uploaded ===> https://gateway.irys.xyz/${receipt.id}`);
 
-    // // Path to the image file to be uploaded
-    // const image = "./images/pfp.jpg";
+    // Path to the image file to be uploaded
+    const image = "./images/pfp.jpg";
 
-    // // Tags to add metadata to the uploaded image
-    // const tags = [{name: "coloniz",value: "PFP"},{ name: "Content-Type", value: "image/png" }];
+    // Tags to add metadata to the uploaded image
+    const tags = [
+      { name: "coloniz", value: "PFP" },
+      { name: "Content-Type", value: "image/png" },
+    ];
 
-    // // Upload image file with metadata tags
-    // const receipt2 = await irysUploader.uploadFile(image, { tags: tags });
-    // console.log(`Data uploaded ===> https://gateway.irys.xyz/${receipt2.id}`);
+    // Upload image file with metadata tags
+    const receipt2 = await irysUploader.uploadFile(image, { tags: tags });
+    console.log(`Data uploaded ===> https://gateway.irys.xyz/${receipt2.id}`);
 
-    // Upload folder to irys
-    // Uploads a group of files to Irys in a single transaction.
-    // const folder = "./images";
-    // const receipt3 = await irysUploader.uploadFolder("./" + folder, {
-    //   indexFile: "a.png", // Optional index file (file the user will load when accessing the manifest)
-    //   batchSize: 4, // Number of items to upload at once
-    //   keepDeleted: false, // Whether to keep now deleted items from previous uploads
-    // });
-    // console.log(`Files uploaded. Manifest ID ${receipt3}`);
-    // console.log(`Data uploaded ===> https://gateway.irys.xyz/${receipt3?.id}`);
+    // Upload folder to irys (Uploads a group of files to Irys in a single transaction).
+
+    const folder = "./images";
+    const receipt3 = await irysUploader.uploadFolder("./" + folder, {
+      indexFile: "a.png", // Optional index file (file the user will load when accessing the manifest)
+      batchSize: 4, // Number of items to upload at once
+      keepDeleted: false, // Whether to keep now deleted items from previous uploads
+    });
+    console.log(`Files uploaded. Manifest ID ${receipt3}`);
+    console.log(`Data uploaded ===> https://gateway.irys.xyz/${receipt3?.id}`);
   } catch (error) {
     console.log(error); // Log any errors that occur during upload
   }
