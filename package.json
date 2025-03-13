@@ -11,15 +11,16 @@
     "@irys/query": "^0.0.8",
     "@irys/sdk": "^0.2.9",
     "@irys/upload-core": "^0.0.10",
-    "@irys/upload-starknet-node": "^0.0.1",
+    "@irys/upload-starknet": "^0.0.1",
     "bignumber.js": "^9.1.2",
     "dotenv": "^16.4.7",
     "starknet": "^6.21.1",
     "starknet-merkle-tree": "^1.0.1"
   },
   "devDependencies": {
-    "@types/node": "^20.11.5",
+    "@types/node": "^20.17.24",
+    "ts-node": "^10.9.2",
     "tsx": "^4.7.0",
-    "typescript": "^5.3.3"
+    "typescript": "^5.8.2"
   }
 }
